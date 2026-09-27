@@ -236,6 +236,68 @@
   .tender-toggle input{width:auto;}
   .add-plant-panel{margin-bottom:22px;}
 
+  /* Library name list (click a name to expand its details) */
+  .plant-list{background:var(--white);border:1px solid var(--parchment-line);border-radius:4px;max-width:720px;}
+  .plant-row{border-bottom:1px solid var(--parchment-line);}
+  .plant-row:last-child{border-bottom:none;}
+  .plant-row-btn{
+    width:100%;display:flex;align-items:center;gap:10px;
+    background:transparent;border:none;cursor:pointer;text-align:left;
+    padding:12px 16px;font-family:'Inter',sans-serif;font-size:15px;color:var(--ink);
+  }
+  .plant-row-btn:hover{background:var(--parchment);}
+  .plant-row.open .plant-row-btn{background:var(--parchment);}
+  .plant-row-name{font-weight:600;color:var(--forest);}
+  .plant-row-variety{font-size:13px;font-style:italic;color:var(--clay);}
+  .garden-badge{margin-left:auto;font-size:11px;font-weight:600;color:var(--sage);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;}
+  .chevron{color:var(--ink-soft);font-size:12px;transition:transform .15s ease;flex-shrink:0;}
+  .plant-row:not(:has(.garden-badge)) .chevron{margin-left:auto;}
+  .plant-row.open .chevron{transform:rotate(90deg);}
+  .plant-detail{padding:4px 16px 16px 38px;background:var(--parchment);}
+  .detail-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px 18px;}
+  .detail-grid .meta-line{font-size:13px;color:var(--ink-soft);margin:2px 0;}
+  .detail-grid .meta-line b{color:var(--ink);font-weight:600;}
+  @media (max-width:600px){ .plant-detail{padding-left:16px;} }
+  .alpha-bar{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 10px 0;}
+  .alpha-btn{
+    min-width:30px;height:30px;padding:0 6px;border-radius:3px;
+    border:1px solid var(--parchment-line);background:var(--white);color:var(--forest);
+    font-family:'Inter',sans-serif;font-weight:600;font-size:13px;cursor:pointer;
+  }
+  .alpha-btn:hover:not(:disabled){border-color:var(--sage);background:var(--parchment);}
+  .alpha-btn.active{background:var(--forest);border-color:var(--forest);color:var(--white);}
+  .alpha-btn:disabled{opacity:.3;cursor:default;}
+  .alpha-btn.all{padding:0 10px;}
+  .var-sub{font-weight:400;opacity:.75;}
+  .group-count{font-size:12px;color:var(--ink-soft);}
+  .variety-list{background:var(--parchment);padding:4px 0 10px 0;border-top:1px solid var(--parchment-line);}
+  .variety-row{margin:0 12px 0 30px;border-bottom:1px solid var(--parchment-line);}
+  .variety-row:last-of-type{border-bottom:none;}
+  .variety-btn{
+    width:100%;display:flex;align-items:center;gap:10px;background:transparent;border:none;cursor:pointer;text-align:left;
+    padding:9px 6px;font-family:'Inter',sans-serif;font-size:14px;color:var(--ink);border-radius:3px;
+  }
+  .variety-btn:hover{background:var(--white);}
+  .variety-row.open .variety-btn{background:var(--white);}
+  .variety-name{font-weight:500;}
+  .variety-alt{color:var(--ink-soft);font-weight:400;}
+  .variety-btn .swatch{width:10px;height:10px;}
+  .variety-row .chevron{margin-left:0;}
+  .variety-row:not(:has(.garden-badge)) .variety-btn .chevron{margin-left:auto;}
+  .variety-row.open .chevron{transform:rotate(90deg);}
+  .variety-row .plant-detail{background:var(--white);padding:4px 10px 14px 26px;margin-bottom:6px;border-radius:0 0 3px 3px;}
+  .add-variety{margin:8px 12px 0 30px;}
+  .add-variety-btn{background:transparent;border:1px dashed var(--sage);color:var(--forest);font-weight:600;font-size:12.5px;padding:6px 12px;border-radius:3px;cursor:pointer;font-family:'Inter',sans-serif;}
+  .add-variety-btn:hover{background:var(--white);}
+  .group-row > .plant-row-btn .chevron{margin-left:0;}
+  .group-row:not(:has(> .plant-row-btn .garden-badge)) > .plant-row-btn .group-count{margin-right:auto;}
+  .group-row > .plant-row-btn .garden-badge{margin-left:auto;}
+  .group-row.open > .plant-row-btn .chevron{transform:rotate(90deg);}
+  .group-row .variety-row .chevron{transform:none;}
+  .group-row .variety-row.open .chevron{transform:rotate(90deg);}
+  @media (max-width:600px){ .variety-row, .add-variety{margin-left:14px;margin-right:8px;} .variety-row .plant-detail{padding-left:10px;} .group-count{display:none;} }
+  .list-count{font-size:12px;color:var(--ink-soft);margin:0 0 10px 2px;font-family:'JetBrains Mono',monospace;}
+
   /* ---------- Calendar tab ---------- */
   .frost-inputs{display:flex;gap:16px;margin-bottom:24px;flex-wrap:wrap;align-items:flex-end;}
   .frost-inputs .field{margin-bottom:0;min-width:180px;}
@@ -406,27 +468,302 @@
 <script type="text/babel">
 const { useState, useEffect, useMemo, useCallback, useRef } = React;
 
-/* ---------------- Default plant database (seed data, user-editable after load) ---------------- */
-const DEFAULT_LIBRARY = [
-  { id:'tomato', name:'Tomato', variety:'Better Boy', color:'#C1442D', sun:'Full sun', water:'Regular', spacing:'24 in', maturity:75, startIndoors:6, sowAfterFrost:1, tender:true },
-  { id:'pepper', name:'Pepper', variety:'California Wonder', color:'#D9822B', sun:'Full sun', water:'Regular', spacing:'18 in', maturity:70, startIndoors:8, sowAfterFrost:2, tender:true },
-  { id:'lettuce', name:'Lettuce', variety:'Buttercrunch', color:'#7FA654', sun:'Part shade', water:'Frequent', spacing:'8 in', maturity:45, startIndoors:4, sowAfterFrost:-2, tender:false },
-  { id:'carrot', name:'Carrot', variety:'Nantes', color:'#E08A2C', sun:'Full sun', water:'Regular', spacing:'3 in', maturity:70, startIndoors:0, sowAfterFrost:-2, tender:false },
-  { id:'basil', name:'Basil', variety:'Genovese', color:'#4C7A3D', sun:'Full sun', water:'Regular', spacing:'10 in', maturity:60, startIndoors:6, sowAfterFrost:2, tender:true },
-  { id:'cucumber', name:'Cucumber', variety:'Marketmore 76', color:'#3F8552', sun:'Full sun', water:'Frequent', spacing:'36 in', maturity:60, startIndoors:3, sowAfterFrost:2, tender:true },
-  { id:'zucchini', name:'Zucchini', variety:'Black Beauty', color:'#5B9A3B', sun:'Full sun', water:'Regular', spacing:'36 in', maturity:50, startIndoors:3, sowAfterFrost:2, tender:true },
-  { id:'onion', name:'Onion', variety:'Yellow Sweet Spanish', color:'#9B6BB0', sun:'Full sun', water:'Light', spacing:'4 in', maturity:100, startIndoors:8, sowAfterFrost:-3, tender:false },
-  { id:'garlic', name:'Garlic', variety:'German Extra Hardy', color:'#B79FCB', sun:'Full sun', water:'Light', spacing:'6 in', maturity:240, startIndoors:0, sowAfterFrost:-99, tender:false },
-  { id:'kale', name:'Kale', variety:'Lacinato (Dinosaur)', color:'#3E7248', sun:'Full sun', water:'Regular', spacing:'12 in', maturity:55, startIndoors:5, sowAfterFrost:-3, tender:false },
-  { id:'radish', name:'Radish', variety:'Cherry Belle', color:'#B84A5E', sun:'Full sun', water:'Regular', spacing:'2 in', maturity:25, startIndoors:0, sowAfterFrost:-4, tender:false },
-  { id:'beans', name:'Bush Beans', variety:'Provider', color:'#6E8F3E', sun:'Full sun', water:'Regular', spacing:'6 in', maturity:55, startIndoors:0, sowAfterFrost:2, tender:true },
-  { id:'peas', name:'Peas', variety:'Sugar Snap', color:'#8CAE58', sun:'Full sun', water:'Regular', spacing:'3 in', maturity:60, startIndoors:0, sowAfterFrost:-4, tender:false },
-  { id:'spinach', name:'Spinach', variety:'Bloomsdale Long Standing', color:'#2F6B3A', sun:'Part shade', water:'Frequent', spacing:'6 in', maturity:40, startIndoors:4, sowAfterFrost:-4, tender:false },
-  { id:'beet', name:'Beet', variety:'Detroit Dark Red', color:'#8C2F4A', sun:'Full sun', water:'Regular', spacing:'4 in', maturity:55, startIndoors:0, sowAfterFrost:-2, tender:false },
-  { id:'squash', name:'Winter Squash', variety:'Waltham Butternut', color:'#C87A2E', sun:'Full sun', water:'Regular', spacing:'48 in', maturity:100, startIndoors:3, sowAfterFrost:2, tender:true },
-  { id:'broccoli', name:'Broccoli', variety:'Calabrese', color:'#33684A', sun:'Full sun', water:'Regular', spacing:'18 in', maturity:65, startIndoors:6, sowAfterFrost:-3, tender:false },
-  { id:'strawberry', name:'Strawberry', variety:'Albion', color:'#A8324A', sun:'Full sun', water:'Regular', spacing:'12 in', maturity:365, startIndoors:0, sowAfterFrost:0, tender:false },
+/* ---------------- Default plant database, organized by plant group ----------------
+   Each group: [groupName, base settings, varieties]
+   base: { color, sun, water, spacing (in), startIndoors (wks before last frost),
+           sowAfterFrost (wks relative to last frost; -99 = not spring-sown), tender }
+   variety: [id, variety name, days to maturity, color?, overrides?]
+   Growing details are typical guidelines — edit any entry to match your seed packet. */
+const FS = 'Full sun', PS = 'Part shade', LT = 'Light', RG = 'Regular', FQ = 'Frequent';
+const g = (color, sun, water, spacing, startIndoors, sowAfterFrost, tender) => ({ color, sun, water, spacing, startIndoors, sowAfterFrost, tender });
+
+const PLANT_GROUPS = [
+  ['Amaranth', g('#9E2A4E',FS,LT,12,0,2,true), [
+    ['amaranth','Hopi Red Dye',75], ['amaranth_love','Love-Lies-Bleeding',80,'#A8324A'] ]],
+  ['Artichoke', g('#6E8B74',FS,RG,36,8,2,true), [
+    ['artichoke','Imperial Star',85], ['artichoke_green_globe','Green Globe',120], ['artichoke_violetto','Violetto',100,'#6B4A7A'] ]],
+  ['Arugula', g('#6F9A4A',FS,RG,6,0,-4,false), [
+    ['arugula','Astro',40], ['arugula_roquette','Roquette',40], ['arugula_wild','Sylvetta (wild)',50,'#5F8A3A'] ]],
+  ['Asparagus', g('#7FA35B',FS,RG,18,0,-4,false), [
+    ['asparagus','Jersey Knight',730], ['asparagus_mary','Mary Washington',730], ['asparagus_purple','Purple Passion',730,'#6B3F6E'] ]],
+  ['Basil', g('#4C7A3D',FS,RG,10,6,2,true), [
+    ['basil','Genovese',60], ['basil_napoletano','Napoletano',70], ['thai_basil','Siam Queen (Thai)',65,'#6A4A7A'],
+    ['basil_lemon','Mrs. Burns Lemon',60,'#9CB84A'], ['basil_opal','Dark Opal (purple)',80,'#5A2E4A'],
+    ['basil_cinnamon','Cinnamon',65,'#6A5A3A'], ['basil_holy','Holy Basil (Tulsi)',85,'#5A6A3A'], ['basil_globe','Spicy Globe',60,'#5F9A4A'] ]],
+  ['Beans', g('#6E8F3E',FS,RG,6,0,2,true), [
+    ['beans','Provider (bush)',55], ['beans_bluelake','Blue Lake 274 (bush)',58,'#4F7A3A'], ['beans_contender','Contender (bush)',50,'#7FA048'],
+    ['beans_dragon','Dragon Tongue (bush wax)',60,'#C9B24A'], ['beans_royal','Royal Burgundy (bush)',55,'#5A2E5A'],
+    ['pole_beans','Kentucky Wonder (pole)',65,'#5F8A36'], ['beans_rattlesnake','Rattlesnake (pole)',70,'#6A5A3A'],
+    ['beans_runner','Scarlet Runner (pole)',70,'#C0392B'], ['beans_yardlong','Yardlong (Asian pole)',80,'#4F8A3A',{sowAfterFrost:3}],
+    ['lima','Fordhook 242 (lima)',75,'#9DBE6E',{sowAfterFrost:3}], ['edamame','Midori Giant (edamame)',85,'#6FA048'],
+    ['fava','Broad Windsor (fava)',85,'#7D9A55',{spacing:8,sowAfterFrost:-4,tender:false}],
+    ['black_eyed_peas','California Blackeye #5 (cowpea)',75,'#BFB27E',{water:LT,sowAfterFrost:3}],
+    ['beans_blackturtle','Black Turtle (dry)',90,'#2E2A2A'], ['beans_jacobs',"Jacob's Cattle (dry)",90,'#9E4A3A'], ['beans_pinto','Pinto (dry)',90,'#B08A6A'] ]],
+  ['Beet', g('#8C2F4A',FS,RG,4,0,-2,false), [
+    ['beet','Detroit Dark Red',55], ['beet_chioggia','Chioggia',55,'#C45A7A'], ['beet_golden','Touchstone Gold',55,'#D9A43A'],
+    ['beet_bulls',"Bull's Blood",58,'#6A1F2E'], ['beet_cylindra','Cylindra',60,'#7A2A3E'] ]],
+  ['Blackberry', g('#3A2E4A',FS,RG,48,0,-2,false), [
+    ['blackberry','Triple Crown',365], ['blackberry_chester','Chester Thornless',365,'#2E2440'], ['blackberry_navaho','Navaho',365,'#4A3A5A'] ]],
+  ['Blueberry', g('#4A5FA8',FS,RG,48,0,-2,false), [
+    ['blueberry','Duke',730], ['blueberry_bluecrop','Bluecrop',730,'#3A4F98'], ['blueberry_northland','Northland',730,'#5A6FB0'],
+    ['blueberry_pinklemonade','Pink Lemonade',730,'#D98AA0'] ]],
+  ['Bok Choy', g('#9DBF6A',PS,FQ,8,4,-3,false), [
+    ['bok_choy','Joi Choi',45], ['bok_choy_toy','Toy Choy (baby)',30,'#8DB05A',{spacing:6}],
+    ['bok_choy_shanghai','Shanghai Green',45,'#7FA85A'], ['tatsoi','Tatsoi',45,'#3E6A3A'] ]],
+  ['Borage', g('#5A7EC0',FS,LT,18,0,0,false), [ ['borage','Common',55] ]],
+  ['Broccoli', g('#33684A',FS,RG,18,6,-3,false), [
+    ['broccoli','Calabrese',65], ['broccoli_waltham','Waltham 29',75,'#2E5A40'], ['broccoli_decicco','De Cicco',60,'#3F7A4A'],
+    ['broccoli_goliath','Green Goliath',55,'#2A6040'], ['broccoli_purple','Purple Sprouting',120,'#5A3E6A'],
+    ['broccoli_raab','Sessantina (raab)',45,'#5F8F4A',{spacing:6,startIndoors:0}] ]],
+  ['Brussels Sprouts', g('#4E7A3A',FS,RG,24,6,-2,false), [
+    ['brussels','Long Island Improved',100], ['brussels_churchill','Churchill',90,'#5A8A42'], ['brussels_rubine','Rubine (red)',105,'#6A2E4A'] ]],
+  ['Cabbage', g('#8DB07A',FS,RG,18,6,-3,false), [
+    ['cabbage','Golden Acre',65], ['cabbage_ejw','Early Jersey Wakefield',63,'#7FA06A'], ['cabbage_copenhagen','Copenhagen Market',70,'#9DBF8A'],
+    ['cabbage_savoy','Perfection Drumhead (savoy)',90,'#6A9A5A'], ['red_cabbage','Ruby Ball (red)',75,'#7A3B6B'],
+    ['cabbage_redrock','Mammoth Red Rock (red)',100,'#6A2E5A'],
+    ['napa_cabbage','Michihili (napa)',70,'#B4C98A',{sun:PS,water:FQ,spacing:12,startIndoors:4,sowAfterFrost:-2}] ]],
+  ['Calendula', g('#F0A830',FS,RG,12,6,-2,false), [
+    ['calendula','Pacific Beauty',55], ['calendula_resina','Resina',55,'#E8962A'], ['calendula_zeolights','Zeolights',60,'#E8B86A'] ]],
+  ['Carrot', g('#E08A2C',FS,RG,3,0,-2,false), [
+    ['carrot','Nantes',70], ['carrot_danvers','Danvers 126',70,'#D97A22'], ['carrot_chantenay','Red Cored Chantenay',70,'#D0661F'],
+    ['carrot_imperator','Imperator 58',75,'#E0922E'], ['carrot_paris','Paris Market (round)',55,'#E8A03A'],
+    ['carrot_littlefinger','Little Finger',60,'#E89A3A'], ['carrot_purple','Purple Dragon',70,'#6A2E5A'], ['carrot_atomic','Atomic Red',70,'#C0392B'] ]],
+  ['Catnip', g('#9AB07A',FS,LT,18,6,0,false), [ ['catnip','Common',80] ]],
+  ['Cauliflower', g('#BFB894',FS,RG,18,6,-2,false), [
+    ['cauliflower','Snowball Y Improved',70], ['cauliflower_cheddar','Cheddar (orange)',68,'#E3A23A'],
+    ['cauliflower_graffiti','Graffiti (purple)',80,'#7A3E8A'], ['cauliflower_romanesco','Veronica (romanesco)',80,'#9DBF4A'] ]],
+  ['Celeriac', g('#B0A67A',FS,FQ,8,10,2,true), [ ['celeriac','Brilliant',110] ]],
+  ['Celery', g('#A3C46E',FS,FQ,8,10,2,true), [
+    ['celery','Tall Utah',100], ['celery_golden','Golden Self-Blanching',115,'#C9CF7A'] ]],
+  ['Chamomile', g('#E0C85A',FS,LT,8,6,-1,false), [
+    ['chamomile','German',60], ['chamomile_roman','Roman',90,'#D0B84A'] ]],
+  ['Chervil', g('#8DB07A',PS,RG,8,0,-2,false), [ ['chervil','Curled',50] ]],
+  ['Chickpea', g('#C9B27E',FS,LT,6,0,-1,false), [
+    ['chickpea_garbanzo','Garbanzo',100], ['chickpea','Black Kabouli',100,'#3A2E2A'] ]],
+  ['Chives', g('#7A5FA0',FS,RG,8,8,-2,false), [
+    ['chives','Common',75], ['chives_garlic','Garlic Chives',85,'#9CB07A'] ]],
+  ['Cilantro', g('#6FA34A',PS,RG,6,0,0,false), [
+    ['cilantro','Santo',50], ['cilantro_calypso','Calypso (slow bolt)',55,'#5F9A40'] ]],
+  ['Collard Greens', g('#3C6A45',FS,RG,18,6,-3,false), [
+    ['collards','Georgia Southern',75], ['collards_vates','Vates',60,'#2E5A3A'], ['collards_morris','Morris Heading',80,'#4A7A50'] ]],
+  ['Corn', g('#E7C94A',FS,RG,12,0,2,true), [
+    ['sweet_corn','Silver Queen (sweet)',90,'#E0D08A'], ['corn_bantam','Golden Bantam (sweet)',80], ['corn_peaches','Peaches and Cream (sweet)',80,'#EAD27A'],
+    ['corn_ambrosia','Ambrosia (sweet)',75,'#E3C45A'], ['corn_stowells',"Stowell's Evergreen (sweet)",95,'#D9C06A'],
+    ['popcorn','Robust (popcorn)',105,'#D9A441'], ['corn_glassgem','Glass Gem (popcorn)',110,'#8A5AB0'], ['corn_bloody','Bloody Butcher (dent)',110,'#8C2F2F'] ]],
+  ['Cosmos', g('#D775B0',FS,LT,12,0,1,true), [
+    ['cosmos','Sensation Mix',75], ['cosmos_brightlights','Bright Lights',70,'#E8892A'], ['cosmos_seashells','Sea Shells',80,'#E09AC0'] ]],
+  ['Cucamelon', g('#6FA048',FS,RG,12,6,2,true), [ ['cucamelon','Mexican Sour Gherkin',70] ]],
+  ['Cucumber', g('#3F8552',FS,FQ,36,3,2,true), [
+    ['cucumber','Marketmore 76',60], ['cucumber_straight8','Straight Eight',58,'#3A7A4A'], ['cucumber_diva','Diva',58,'#4A8A52'],
+    ['pickling_cucumber','Boston Pickling',55,'#4F8A3A'], ['cucumber_lemon','Lemon',65,'#E3CF4A'], ['cucumber_armenian','Armenian',70,'#9DBF8A'],
+    ['cucumber_suyo','Suyo Long',60,'#2E6A40'], ['cucumber_spacemaster','Spacemaster (compact)',60,'#4F8A5A',{spacing:24}] ]],
+  ['Dahlia', g('#C0305A',FS,RG,18,0,2,true), [
+    ['dahlia','Café au Lait (tuber)',100,'#D8B8A0'], ['dahlia_bishop','Bishop of Llandaff (tuber)',100,'#B0201F'] ]],
+  ['Dill', g('#9DBB4A',FS,RG,12,0,0,false), [
+    ['dill','Bouquet',60], ['dill_mammoth','Mammoth Long Island',70,'#8DAF3A'], ['dill_fernleaf','Fernleaf (dwarf)',60,'#7FA048'] ]],
+  ['Eggplant', g('#4B2E5A',FS,RG,24,8,3,true), [
+    ['eggplant','Black Beauty',80], ['eggplant_ichiban','Ichiban (Japanese)',60,'#3E2450'], ['eggplant_pingtung','Ping Tung Long',65,'#6A3A7A'],
+    ['eggplant_fairytale','Fairy Tale',50,'#8A5AA0'], ['eggplant_rosabianca','Rosa Bianca',80,'#B07AA0'], ['eggplant_listada','Listada de Gandia',80,'#7A4A8A'] ]],
+  ['Endive', g('#9DB65C',PS,RG,10,4,-2,false), [
+    ['endive','Green Curled',85], ['endive_tresfine','Très Fine Maraîchère (frisée)',55,'#8DAA4A'],
+    ['escarole','Batavian Full Heart (escarole)',85,'#A9C27A',{spacing:12}] ]],
+  ['Fennel', g('#A9C27A',FS,RG,10,4,0,false), [
+    ['fennel','Florence',80], ['fennel_bronze','Bronze (herb)',60,'#7A5A3A'] ]],
+  ['Garlic', g('#B79FCB',FS,LT,6,0,-99,false), [
+    ['garlic','German Extra Hardy (hardneck)',240], ['garlic_music','Music (hardneck)',240,'#C8B0D8'], ['garlic_chesnok','Chesnok Red (hardneck)',240,'#A06A8A'],
+    ['garlic_calearly','California Early (softneck)',240,'#C0B0C8'], ['garlic_inchelium','Inchelium Red (softneck)',240,'#A88AB0'],
+    ['garlic_elephant','Elephant Garlic',240,'#9A8AB0',{spacing:8}] ]],
+  ['Gourd', g('#A89A4A',FS,RG,48,3,2,true), [
+    ['gourd_birdhouse','Birdhouse',120], ['luffa','Luffa (sponge)',150,'#6F9A4A'] ]],
+  ['Ground Cherry', g('#E3B84A',FS,RG,24,6,2,true), [ ['ground_cherry',"Aunt Molly's",70] ]],
+  ['Horseradish', g('#BDB38A',FS,RG,24,0,-4,false), [ ['horseradish','Maliner Kren',150] ]],
+  ['Kale', g('#3E7248',FS,RG,12,5,-3,false), [
+    ['kale','Lacinato (Dinosaur)',55], ['kale_redrussian','Red Russian',50,'#7A4A6A'], ['kale_winterbor','Winterbor',60,'#4A7A50'],
+    ['kale_dwarfblue','Dwarf Blue Curled',55,'#3A6A5A'], ['kale_redbor','Redbor',55,'#6A2E5A'] ]],
+  ['Kohlrabi', g('#9CC08E',FS,RG,6,4,-3,false), [
+    ['kohlrabi','Early White Vienna',55], ['kohlrabi_purple','Early Purple Vienna',60,'#7A4A8A'], ['kohlrabi_kossak','Kossak (giant)',80,'#8DB07E',{spacing:12}] ]],
+  ['Lavender', g('#8E7CC3',FS,LT,18,10,1,false), [
+    ['lavender','Munstead',90], ['lavender_hidcote','Hidcote',110,'#5A4A9A'], ['lavender_phenomenal','Phenomenal',100,'#9A8AC8'] ]],
+  ['Leek', g('#6E9A6A',FS,RG,6,10,-2,false), [
+    ['leek','King Richard',75], ['leek_lancelot','Lancelot',100,'#5F8A5A'], ['leek_americanflag','American Flag',120,'#4F7A5A'] ]],
+  ['Lemon Balm', g('#9CC25A',PS,RG,18,6,0,false), [ ['lemon_balm','Common',70] ]],
+  ['Lemongrass', g('#B5C35A',FS,FQ,24,8,2,true), [ ['lemongrass','East Indian',100] ]],
+  ['Lettuce', g('#7FA654',PS,FQ,8,4,-2,false), [
+    ['lettuce','Buttercrunch (butterhead)',45], ['lettuce_bss','Black Seeded Simpson (leaf)',45,'#9DC05A'],
+    ['lettuce_redsails','Red Sails (leaf)',50,'#9A3A4A'], ['lettuce_lollo','Lollo Rosso (leaf)',55,'#8A2E4A'],
+    ['lettuce_saladbowl','Salad Bowl (oakleaf)',50,'#8DB85A'], ['romaine','Parris Island Cos (romaine)',70,'#6C9E3F',{spacing:10}],
+    ['lettuce_littlegem','Little Gem (romaine)',55,'#7AA84A'], ['lettuce_forellenschluss','Forellenschluss (romaine)',55,'#7A8A4A'],
+    ['lettuce_iceberg','Great Lakes (iceberg)',85,'#A8C88A',{spacing:12}],
+    ['mesclun','Salad Blend (mesclun)',30,'#88B05A',{spacing:4,startIndoors:0,sowAfterFrost:-3}] ]],
+  ['Lovage', g('#5F8A3A',PS,RG,24,6,-2,false), [ ['lovage','Common',80] ]],
+  ['Malabar Spinach', g('#5A7D3A',FS,FQ,12,6,2,true), [ ['malabar_spinach','Red Stem',70] ]],
+  ['Marigold', g('#E89A1F',FS,LT,8,6,1,true), [
+    ['marigold','French Petite',50], ['marigold_crackerjack','Crackerjack (African)',80,'#E8A81F',{spacing:12}],
+    ['marigold_signet','Lemon Gem (signet)',60,'#E8C82A'] ]],
+  ['Marjoram', g('#8AA070',FS,LT,8,8,1,true), [ ['marjoram','Sweet',80] ]],
+  ['Melon', g('#E3A55A',FS,RG,36,3,2,true), [
+    ['cantaloupe',"Hale's Best Jumbo (cantaloupe)",85], ['melon_ambrosia','Ambrosia (cantaloupe)',86,'#E8A060'],
+    ['melon_midget','Minnesota Midget (cantaloupe)',70,'#E0B070'], ['melon_charentais','Charentais',85,'#E89A4A'],
+    ['melon_galia','Galia',80,'#C9C07A'], ['melon_canary','Canary',90,'#E8CF4A'], ['melon_crenshaw','Crenshaw',110,'#D9B86A'],
+    ['honeydew','Green Flesh (honeydew)',100,'#B8C98A'] ]],
+  ['Mint', g('#4FA06A',PS,FQ,18,0,0,false), [
+    ['mint','Spearmint',90], ['mint_pepper','Peppermint',90,'#3F8A5A'], ['mint_apple','Apple Mint',90,'#7FB07A'], ['mint_chocolate','Chocolate Mint',90,'#5A4A3A'] ]],
+  ['Mustard Greens', g('#7EA646',FS,RG,8,0,-3,false), [
+    ['mustard','Southern Giant Curled',45], ['mustard_redgiant','Red Giant',45,'#7A3A4A'], ['mizuna','Mizuna',40,'#6FA03A'] ]],
+  ['Nasturtium', g('#E4572E',FS,LT,12,0,1,true), [
+    ['nasturtium','Jewel Mix',55], ['nasturtium_alaska','Alaska',55,'#E8702E'], ['nasturtium_climbing','Climbing Mix',65,'#D0402A'] ]],
+  ['Okra', g('#6B8E3A',FS,LT,18,4,3,true), [
+    ['okra','Clemson Spineless',60], ['okra_emerald','Emerald',60,'#4F8A3A'], ['okra_starofdavid','Star of David',65,'#5A7A3A'],
+    ['okra_burgundy','Red Burgundy',60,'#8A2E3A'] ]],
+  ['Onion', g('#9B6BB0',FS,LT,4,8,-3,false), [
+    ['onion','Yellow Sweet Spanish',100], ['onion_walla','Walla Walla',110,'#C9B26A'], ['onion_candy','Candy',100,'#D0B070'],
+    ['onion_texas','Texas Grano 1015Y',110,'#C8A860'], ['onion_redburgundy','Red Burgundy',100,'#7A2E4A'],
+    ['onion_cipollini','Borettana (cipollini)',110,'#B8A070'],
+    ['scallion','Evergreen Bunching (scallion)',60,'#7FB069',{spacing:2,water:RG,startIndoors:6}],
+    ['scallion_lisbon','White Lisbon (scallion)',60,'#8FBF6A',{spacing:2,water:RG,startIndoors:6}] ]],
+  ['Oregano', g('#6E8A4A',FS,LT,12,8,1,false), [
+    ['oregano','Greek',90], ['oregano_italian','Italian',90,'#7A9A5A'] ]],
+  ['Parsley', g('#3F7A3A',PS,RG,8,8,-2,false), [
+    ['parsley','Italian Flat Leaf',75], ['parsley_curled','Moss Curled',75,'#4F8A3A'], ['parsley_root','Hamburg (root)',90,'#C9B88A'] ]],
+  ['Parsnip', g('#CFC08A',FS,RG,4,0,-2,false), [
+    ['parsnip','Hollow Crown',120], ['parsnip_harris','Harris Model',120,'#D8CA9A'] ]],
+  ['Peanut', g('#C9A36A',FS,LT,12,0,3,true), [
+    ['peanut','Virginia Jumbo',130], ['peanut_valencia','Tennessee Red Valencia',110,'#A0503A'] ]],
+  ['Peas', g('#8CAE58',FS,RG,3,0,-4,false), [
+    ['peas','Sugar Snap (snap)',60], ['peas_sugarann','Sugar Ann (snap)',56,'#9CBE68'], ['snow_peas','Oregon Sugar Pod II (snow)',60,'#9CC36A'],
+    ['peas_greenarrow','Green Arrow (shelling)',70,'#7A9E48'], ['peas_littlemarvel','Little Marvel (shelling)',62,'#86A852'],
+    ['peas_lincoln','Lincoln (shelling)',67,'#7FA24E'], ['peas_tomthumb','Tom Thumb (dwarf)',50,'#94B660'] ]],
+  ['Pepper', g('#D9822B',FS,RG,18,8,2,true), [
+    ['pepper','California Wonder (bell)',70], ['pepper_purple','Purple Beauty (bell)',75,'#5A2E5A'], ['pepper_carmen','Carmen (sweet)',75,'#B9261F'],
+    ['pepper_gypsy','Gypsy (sweet)',65,'#E3A23A'], ['pepper_cubanelle','Cubanelle (sweet)',70,'#9DBF4A'], ['banana_pepper','Sweet Banana',70,'#D9BE2E'],
+    ['pepper_shishito','Shishito (mild)',60,'#6FA048'], ['pepper_anaheim','Anaheim (mild)',80,'#4F8A3A'], ['pepper_poblano','Poblano / Ancho (mild)',75,'#2E5A3A'],
+    ['pepper_hungarian','Hungarian Wax (hot)',65,'#E8CF4A'], ['jalapeno','Early Jalapeño (hot)',65,'#3C7A3A'], ['pepper_serrano','Serrano (hot)',75,'#3F7A3A'],
+    ['cayenne','Long Red Slim Cayenne (hot)',75,'#B9261F'], ['pepper_thai','Thai Hot (very hot)',90,'#C0392B'],
+    ['habanero','Orange Habanero (very hot)',95,'#F08A24',{startIndoors:10}], ['pepper_ghost','Bhut Jolokia / Ghost (extreme)',120,'#A8231F',{startIndoors:10}],
+    // more hot peppers — heat noted in brackets: medium < hot < very hot < extreme
+    ['pepper_padron','Padrón (medium)',60,'#5F9A3A'], ['pepper_bigjim','NuMex Big Jim (medium)',75,'#3F7A3A'],
+    ['pepper_santafe','Santa Fe Grande (medium)',75,'#E3B84A'], ['pepper_czechblack','Czech Black (medium)',70,'#2E2A2A'],
+    ['pepper_guajillo','Guajillo / Mirasol (medium)',85,'#8C2A1F'],
+    ['pepper_fresno','Fresno (hot)',75,'#C0301F'], ['pepper_cherrybomb','Cherry Bomb (hot)',65,'#C8281F'],
+    ['pepper_muchonacho','Mucho Nacho Jalapeño (hot)',70,'#3A6A35'], ['pepper_purplejalapeno','Purple Jalapeño (hot)',70,'#5A2E5A'],
+    ['pepper_joescayenne',"Joe's Long Cayenne (hot)",80,'#B8261F'], ['pepper_arbol','Chile de Árbol (hot)',85,'#B02A1F'],
+    ['pepper_lemondrop','Aji Lemon Drop (hot)',100,'#E8D02A',{startIndoors:10}], ['pepper_ajiamarillo','Aji Amarillo (hot)',110,'#E89A1F',{startIndoors:10}],
+    ['pepper_rocoto','Rocoto (hot)',120,'#C02A1F',{startIndoors:10,spacing:24}],
+    ['pepper_tabasco','Tabasco (very hot)',90,'#D8402A',{startIndoors:10}], ['pepper_tientsin','Tien Tsin (very hot)',80,'#C0281F'],
+    ['pepper_birdseye',"Bird's Eye (very hot)",90,'#B82A1F'], ['pepper_pequin','Pequin (very hot)',100,'#C8301F',{startIndoors:10}],
+    ['pepper_chiltepin','Chiltepin (very hot)',100,'#A8281F',{startIndoors:10}],
+    ['pepper_scotchbonnet','Scotch Bonnet (very hot)',100,'#E8A01F',{startIndoors:10}], ['pepper_redsavina','Red Savina Habanero (very hot)',100,'#C0281F',{startIndoors:10}],
+    ['pepper_chochab','Chocolate Habanero (very hot)',100,'#5A2E1F',{startIndoors:10}], ['pepper_fatalii','Fatalii (very hot)',90,'#E8C82A',{startIndoors:10}],
+    ['pepper_datil','Datil (very hot)',100,'#E8B02A',{startIndoors:10}],
+    ['pepper_7potdouglah','7 Pot Douglah (extreme)',120,'#4A2A1F',{startIndoors:12}],
+    ['pepper_moruga','Trinidad Moruga Scorpion (extreme)',120,'#B0201F',{startIndoors:12}],
+    ['pepper_reaper','Carolina Reaper (extreme)',120,'#A01A1A',{startIndoors:12}] ]],
+  ['Potato', g('#C9A860',FS,RG,12,0,-2,false), [
+    ['potato','Yukon Gold',90], ['potato_redpontiac','Red Pontiac',90,'#A04A4A'], ['potato_russet','Russet Burbank',120,'#A0805A'],
+    ['potato_kennebec','Kennebec',110,'#C8B080'], ['potato_purplemajesty','Purple Majesty',90,'#5A2E5A'], ['potato_adirondack','Adirondack Blue',90,'#3A4A8A'],
+    ['potato_frenchfingerling','French Fingerling',100,'#B8706A'], ['potato_russianbanana','Russian Banana (fingerling)',100,'#D8C070'] ]],
+  ['Pumpkin', g('#E07A1F',FS,RG,48,3,2,true), [
+    ['pumpkin','Howden',115], ['pumpkin_jack',"Jack O'Lantern",110,'#E8801F'], ['pumpkin_sugarpie','Small Sugar (pie)',100,'#D8701F'],
+    ['pumpkin_cinderella',"Rouge Vif d'Etampes (Cinderella)",110,'#D0501F'], ['pumpkin_jarrahdale','Jarrahdale',100,'#8FA0A0'],
+    ['pumpkin_babyboo','Baby Boo (mini white)',95,'#D8D0B8',{spacing:36}], ['pumpkin_atlantic','Atlantic Giant',120,'#E08A30',{spacing:60}] ]],
+  ['Quinoa', g('#C06A3A',FS,LT,12,0,0,false), [ ['quinoa','Brightest Brilliant Rainbow',100] ]],
+  ['Radicchio', g('#8A2C4A',FS,RG,8,4,-2,false), [
+    ['radicchio','Rossa di Treviso',85], ['radicchio_chioggia','Rossa di Chioggia',80,'#9A3050'] ]],
+  ['Radish', g('#B84A5E',FS,RG,2,0,-4,false), [
+    ['radish','Cherry Belle',25], ['radish_champion','Champion',28,'#C0404E'], ['radish_frenchbreakfast','French Breakfast',25,'#C8607A'],
+    ['radish_eastereggs','Easter Egg',30,'#A06AB0'], ['radish_icicle','White Icicle',30,'#C9C2AE'],
+    ['radish_watermelon','Watermelon (winter)',60,'#D05A7A',{spacing:4,sowAfterFrost:-2}],
+    ['radish_blackspanish','Black Spanish (winter)',55,'#2E2A2A',{spacing:4,sowAfterFrost:-2}],
+    ['daikon','Minowase (daikon)',60,'#C9C2AE',{spacing:4,sowAfterFrost:-2}] ]],
+  ['Raspberry', g('#C2334F',FS,RG,24,0,-2,false), [
+    ['raspberry','Heritage (red)',365], ['raspberry_latham','Latham (red)',365,'#B02A45'], ['raspberry_fallgold','Fall Gold (yellow)',365,'#E3B84A'],
+    ['raspberry_jewel','Jewel (black)',365,'#3A2E4A'] ]],
+  ['Rhubarb', g('#B0304A',FS,RG,36,0,-4,false), [
+    ['rhubarb','Victoria',365], ['rhubarb_canadared','Canada Red',365,'#C0283A'] ]],
+  ['Rosemary', g('#5B7A6A',FS,LT,24,10,2,true), [
+    ['rosemary','Arp',90], ['rosemary_tuscan','Tuscan Blue',90,'#4A6A7A'], ['rosemary_prostrate','Prostrate (creeping)',90,'#6A8A6A'] ]],
+  ['Rutabaga', g('#A77CA0',FS,RG,6,0,-2,false), [
+    ['rutabaga','American Purple Top',90], ['rutabaga_laurentian','Laurentian',90,'#9A7090'] ]],
+  ['Sage', g('#8FA08A',FS,LT,18,8,1,false), [
+    ['sage','Common',75], ['sage_berggarten','Berggarten',75,'#9AAA9A'], ['sage_purple','Purpurascens (purple)',75,'#7A5A7A'] ]],
+  ['Salsify', g('#C9B28A',FS,RG,4,0,-2,false), [ ['salsify','Mammoth Sandwich Island',120] ]],
+  ['Shallot', g('#A0576B',FS,LT,6,0,-4,false), [
+    ['shallot','French Red',100], ['shallot_grey','French Grey',100,'#8A7A6A'] ]],
+  ['Snapdragon', g('#E0507A',FS,RG,10,8,-2,false), [ ['snapdragon','Rocket Mix',90] ]],
+  ['Sorrel', g('#6E9A40',PS,RG,12,0,-3,false), [
+    ['sorrel','French',60], ['sorrel_redveined','Red Veined',60,'#8A2E3A'] ]],
+  ['Spinach', g('#2F6B3A',PS,FQ,6,4,-4,false), [
+    ['spinach','Bloomsdale Long Standing',40], ['spinach_space','Space',40,'#3A7A45'], ['spinach_tyee','Tyee',40,'#2A6035'],
+    ['spinach_giantwinter','Giant Winter',45,'#3F7A40'] ]],
+  ['Stevia', g('#7FB069',FS,RG,18,8,2,true), [ ['stevia','Sweet Leaf',100] ]],
+  ['Strawberry', g('#A8324A',FS,RG,12,0,0,false), [
+    ['strawberry','Albion (day-neutral)',365], ['strawberry_seascape','Seascape (day-neutral)',365,'#B83A50'],
+    ['strawberry_ozark','Ozark Beauty (everbearing)',365,'#C0404E'], ['strawberry_earliglow','Earliglow (June-bearing)',365,'#A02A40'],
+    ['strawberry_alpine','Mignonette (alpine)',120,'#C84A5A',{startIndoors:10,spacing:8}] ]],
+  ['Summer Savory', g('#8A9A6A',FS,RG,8,0,0,true), [ ['summer_savory','Common',60] ]],
+  ['Summer Squash', g('#5B9A3B',FS,RG,36,3,2,true), [
+    ['zucchini','Black Beauty (zucchini)',50], ['squash_cocozelle','Cocozelle (zucchini)',55,'#4F8A3A'],
+    ['squash_costata','Costata Romanesco (zucchini)',52,'#6F9A5A'], ['squash_golden','Golden Zucchini',55,'#E8B82A'],
+    ['squash_eightball','Eight Ball (round zucchini)',45,'#3F6A3A'], ['yellow_squash','Early Prolific Straightneck (yellow)',50,'#E8C33A'],
+    ['squash_crookneck','Yellow Crookneck',50,'#E3B82A'], ['squash_pattypan','Early White Bush Scallop (pattypan)',50,'#D8D0A8'] ]],
+  ['Sunchoke', g('#C99A55',FS,LT,18,0,-2,false), [ ['sunchoke','Stampede',120] ]],
+  ['Sunflower', g('#E8B82A',FS,LT,18,0,1,true), [
+    ['sunflower','Mammoth Grey Stripe',80], ['sunflower_lemonqueen','Lemon Queen',85,'#E8D84A'], ['sunflower_autumn','Autumn Beauty',90,'#B0502A'],
+    ['sunflower_velvet','Velvet Queen',80,'#7A2E2A'], ['sunflower_teddy','Teddy Bear (dwarf)',65,'#E8A82A',{spacing:12}] ]],
+  ['Sweet Alyssum', g('#B8AFCF',FS,RG,6,6,-1,false), [
+    ['sweet_alyssum','Carpet of Snow',50], ['alyssum_royal','Royal Carpet (purple)',50,'#7A5AA0'] ]],
+  ['Sweet Pea', g('#C86FA6',FS,RG,6,6,-4,false), [
+    ['sweet_pea','Old Spice Mix',75], ['sweet_pea_cupani','Cupani',75,'#6A2E7A'] ]],
+  ['Sweet Potato', g('#C8663A',FS,RG,12,0,3,true), [
+    ['sweet_potato','Beauregard',100], ['sweet_potato_covington','Covington',110,'#C05A30'], ['sweet_potato_georgiajet','Georgia Jet',90,'#B8502A'],
+    ['sweet_potato_okinawan','Okinawan (purple)',120,'#6A3A7A'] ]],
+  ['Swiss Chard', g('#C2463A',FS,RG,10,4,-2,false), [
+    ['swiss_chard','Bright Lights',55], ['chard_fordhook','Fordhook Giant',55,'#3F7A3A'], ['chard_rhubarb','Rhubarb',55,'#A0303A'],
+    ['chard_peppermint','Peppermint',55,'#D07A9A'] ]],
+  ['Tarragon', g('#8BA06A',FS,LT,24,0,1,false), [ ['tarragon','French',60] ]],
+  ['Thyme', g('#7E8C5E',FS,LT,12,8,1,false), [
+    ['thyme','English',85], ['thyme_lemon','Lemon',85,'#A0B05A'], ['thyme_creeping','Creeping',90,'#6A7A5A'] ]],
+  ['Tomatillo', g('#9DBB4E',FS,RG,36,6,2,true), [
+    ['tomatillo','Toma Verde',75], ['tomatillo_purple','Purple',75,'#6A3A6A'] ]],
+  ['Tomato', g('#C1442D',FS,RG,24,6,1,true), [
+    ['tomato','Better Boy',75], ['tomato_earlygirl','Early Girl',50,'#C8402A'], ['tomato_celebrity','Celebrity',70,'#B83A28'],
+    ['tomato_bigbeef','Big Beef',73,'#B03028'], ['tomato_beefsteak','Beefsteak',85,'#A82E26'],
+    ['heirloom_tomato','Cherokee Purple (heirloom)',80,'#7E3440',{spacing:36}], ['tomato_brandywine','Brandywine (heirloom)',90,'#C0504A',{spacing:36}],
+    ['tomato_blackkrim','Black Krim (heirloom)',80,'#5A2E2A',{spacing:36}], ['tomato_mortgage','Mortgage Lifter (heirloom)',85,'#B8483A',{spacing:36}],
+    ['tomato_greenzebra','Green Zebra (heirloom)',75,'#7A9A3A'], ['paste_tomato','Roma (paste)',75,'#B8322A'],
+    ['tomato_sanmarzano','San Marzano (paste)',80,'#C0302A'], ['tomato_amishpaste','Amish Paste (paste)',85,'#B02A28'],
+    ['cherry_tomato','Sungold (cherry)',65,'#EFA23A'], ['tomato_sweet100','Sweet 100 (cherry)',65,'#D0402E'],
+    ['tomato_blackcherry','Black Cherry (cherry)',65,'#5A2E3A'], ['tomato_juliet','Juliet (grape)',60,'#C8382A'] ]],
+  ['Turnip', g('#B57BB0',FS,RG,4,0,-3,false), [
+    ['turnip','Purple Top White Globe',50], ['turnip_hakurei','Hakurei (salad)',38,'#D8D0B8'], ['turnip_goldenball','Golden Ball',60,'#E3B84A'] ]],
+  ['Upland Cress', g('#6F9A4A',PS,FQ,4,0,-3,false), [ ['upland_cress','Common',50] ]],
+  ['Viola', g('#6A4A9A',PS,RG,6,10,-4,false), [ ['viola',"Johnny Jump-Up",70] ]],
+  ['Watercress', g('#4F8F4A',PS,FQ,4,0,-2,false), [ ['watercress','Broadleaf',50] ]],
+  ['Watermelon', g('#3E8E5A',FS,RG,36,3,2,true), [
+    ['watermelon','Sugar Baby',80], ['watermelon_yellowdoll','Yellow Doll',70,'#4A9A5A'], ['watermelon_crimson','Crimson Sweet',85,'#3A8A52'],
+    ['watermelon_charleston','Charleston Gray',90,'#8AA07A'], ['watermelon_jubilee','Jubilee',95,'#4A8A5A'], ['watermelon_moonstars','Moon and Stars',100,'#2E4A3A'] ]],
+  ['Winter Squash', g('#C87A2E',FS,RG,48,3,2,true), [
+    ['squash','Waltham Butternut',100], ['acorn_squash','Table Queen (acorn)',85,'#3F5A38'], ['wsquash_carnival','Carnival (acorn)',85,'#9A8A3A'],
+    ['spaghetti_squash','Vegetable Spaghetti',90,'#E3C66A'], ['wsquash_delicata','Delicata',100,'#D9C07A'], ['wsquash_buttercup','Burgess Buttercup',95,'#3F5A3A'],
+    ['wsquash_kabocha','Sunshine (kabocha)',95,'#E0701F'], ['wsquash_redkuri','Red Kuri',92,'#D0601F'], ['wsquash_hubbard','Blue Hubbard',110,'#6A8A9A'] ]],
+  ['Zinnia', g('#D6336C',FS,RG,12,4,1,true), [
+    ['zinnia','State Fair',75], ['zinnia_benary',"Benary's Giant",80,'#C8285A'], ['zinnia_queenlime','Queen Lime',75,'#9DBF4A'],
+    ['zinnia_thumbelina','Thumbelina (dwarf)',50,'#E0508A',{spacing:6}] ]],
 ];
+
+const DEFAULT_LIBRARY = PLANT_GROUPS.flatMap(([group, base, varieties]) =>
+  varieties.map(([id, variety, maturity, color, over]) => {
+    if(color && typeof color === 'object'){ over = color; color = undefined; }
+    const p = { id, group, name: group, variety, ...base, color: color || base.color, maturity, ...(over || {}) };
+    p.spacing = p.spacing + ' in';
+    return p;
+  })
+);
+const DEFAULT_GROUP_BY_ID = Object.fromEntries(DEFAULT_LIBRARY.map(p => [p.id, p.group]));
+// The plants a brand-new planner puts in My Garden.
+const STARTER_IDS = ['tomato','pepper','lettuce','carrot','basil','cucumber','zucchini','onion','garlic','kale','radish','beans','peas','spinach','beet','squash','broccoli','strawberry'];
+// A plant's group: its own setting, else the built-in group for that plant, else its name.
+function groupOf(p){ return (p.group && p.group.trim()) || DEFAULT_GROUP_BY_ID[p.id] || p.name || 'Other'; }
 
 const STORAGE_KEYS = {
   beds:'furrow:beds',
@@ -436,6 +773,7 @@ const STORAGE_KEYS = {
   name:'furrow:plannerName',
   myGarden:'furrow:myGarden',
   completedTasks:'furrow:completedTasks',
+  seededPlants:'furrow:seededPlants',
 };
 
 function hasClaudeStorage(){
@@ -468,6 +806,15 @@ async function saveKey(key, value){
     catch(e){ console.error('save failed', key, e); }
   }
 }
+
+function byName(a, b){
+  return (a.name||'').localeCompare(b.name||'', undefined, { sensitivity:'base' }) ||
+         (a.variety||'').localeCompare(b.variety||'', undefined, { sensitivity:'base' });
+}
+function firstLetter(name){
+  return (name || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().charAt(0).toUpperCase();
+}
+const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
 function uid(){ return Math.random().toString(36).slice(2,10); }
 
@@ -561,15 +908,27 @@ function App(){
   // load
   useEffect(() => {
     (async () => {
-      const [b, h, f, lib, nm, mg, ct] = await Promise.all([
+      const [b, h, f, savedLib, nm, mg, ct] = await Promise.all([
         loadKey(STORAGE_KEYS.beds, []),
         loadKey(STORAGE_KEYS.harvest, []),
         loadKey(STORAGE_KEYS.frost, { lastSpring:'', firstFall:'' }),
-        loadKey(STORAGE_KEYS.library, DEFAULT_LIBRARY),
+        loadKey(STORAGE_KEYS.library, null),
         loadKey(STORAGE_KEYS.name, 'Furrow'),
         loadKey(STORAGE_KEYS.myGarden, null),
         loadKey(STORAGE_KEYS.completedTasks, []),
       ]);
+      const seeded = await loadKey(STORAGE_KEYS.seededPlants, null);
+      // Add any built-in plants this planner hasn't been given yet, without
+      // touching the user's own edits and without bringing back ones they deleted.
+      let lib;
+      if(!Array.isArray(savedLib)){
+        lib = DEFAULT_LIBRARY;
+      } else {
+        const alreadySeeded = new Set(Array.isArray(seeded) ? seeded : STARTER_IDS);
+        const have = new Set(savedLib.map(p => p.id));
+        lib = [...savedLib, ...DEFAULT_LIBRARY.filter(p => !alreadySeeded.has(p.id) && !have.has(p.id))];
+      }
+      saveKey(STORAGE_KEYS.seededPlants, DEFAULT_LIBRARY.map(p => p.id));
       // migrate old-format cells (plain plantId string) to { plantId, groupId }
       const migratedBeds = normalizeBeds(b);
       setBeds(migratedBeds);
@@ -577,8 +936,8 @@ function App(){
       setFrost(f);
       setLibrary(lib);
       setPlannerName(nm);
-      // first time ever: start My Garden with everything already in the library
-      setMyGarden(mg === null ? lib.map(p => p.id) : mg);
+      // first time ever: start My Garden with the starter plants (not the whole library)
+      setMyGarden(mg === null ? lib.filter(p => STARTER_IDS.includes(p.id)).map(p => p.id) : mg);
       setCompletedTasks(ct);
       if(migratedBeds.length) setActiveBedId(migratedBeds[0].id);
       setLoaded(true);
@@ -595,7 +954,8 @@ function App(){
   useEffect(() => { if(loaded){ setSaving('saving'); saveKey(STORAGE_KEYS.completedTasks, completedTasks).then(()=>setSaving('saved')); } }, [completedTasks, loaded]);
 
   const activeBed = beds.find(b => b.id === activeBedId) || null;
-  const gardenPlantList = useMemo(() => library.filter(p => myGarden.includes(p.id)), [library, myGarden]);
+  const gardenPlantList = useMemo(() => library.filter(p => myGarden.includes(p.id)).sort(byName), [library, myGarden]);
+  const sortedLibrary = useMemo(() => [...library].sort(byName), [library]);
 
   const importInputRef = useRef(null);
 
@@ -881,7 +1241,7 @@ function App(){
             setTab={setTab}
           />
         )}
-        {loaded && tab === 'harvest' && <HarvestTab harvest={harvest} setHarvest={setHarvest} library={library} />}
+        {loaded && tab === 'harvest' && <HarvestTab harvest={harvest} setHarvest={setHarvest} library={sortedLibrary} />}
       </main>
 
       {toast && <div className="toast">{toast}</div>}
@@ -1005,7 +1365,7 @@ function BedsTab({ beds, library, gardenPlants, activeBed, setActiveBedId, creat
                   return (
                     <div key={p.id} className={`plant-tag ${selectedPlant===p.id ? 'selected':''}`} onClick={()=>setSelectedPlant(p.id)} title={p.variety || ''}>
                       <span className="swatch" style={{background:p.color}}></span>
-                      {p.name}{badge}
+                      {p.name}{p.variety && <span className="var-sub"> · {p.variety}</span>}{badge}
                     </div>
                   );
                 })}
@@ -1090,23 +1450,37 @@ function BedsTab({ beds, library, gardenPlants, activeBed, setActiveBedId, creat
 }
 
 /* ---------------- Library Tab ---------------- */
-const BLANK_PLANT = { name:'', variety:'', sun:'Full sun', water:'Regular', spacing:'', maturity:60, startIndoors:0, sowAfterFrost:0, tender:false, color:'#4C7A3D' };
+const BLANK_PLANT = { group:'', name:'', variety:'', sun:'Full sun', water:'Regular', spacing:'', maturity:60, startIndoors:0, sowAfterFrost:0, tender:false, color:'#4C7A3D' };
 
-function PlantEditForm({ initial, onSave, onCancel, title }){
-  const [draft, setDraft] = useState(initial);
+function PlantEditForm({ initial, onSave, onCancel, title, groupNames = [] }){
+  const [draft, setDraft] = useState(() => ({ ...initial, group: initial.group || (initial.name ? groupOf(initial) : '') }));
   const set = (k,v) => setDraft(d => ({...d, [k]:v}));
+  const listId = useMemo(() => 'groups-' + uid(), []);
+
+  const submit = (e) => {
+    e.preventDefault();
+    const group = (draft.group || '').trim();
+    const name = (draft.name || '').trim() || group;
+    if(!name) return;
+    onSave({ ...draft, group: group || name, name });
+  };
 
   return (
-    <form className="panel add-plant-panel" onSubmit={e=>{ e.preventDefault(); if(!draft.name.trim()) return; onSave(draft); }}>
+    <form className="panel add-plant-panel" onSubmit={submit}>
       <div style={{fontWeight:600, marginBottom:10, color:'var(--forest)'}}>{title}</div>
       <div className="edit-form-grid">
         <div className="field">
-          <label>Name</label>
-          <input value={draft.name} onChange={e=>set('name', e.target.value)} required />
+          <label>Group</label>
+          <input list={listId} value={draft.group || ''} onChange={e=>set('group', e.target.value)} placeholder="e.g. Tomato" />
+          <datalist id={listId}>{groupNames.map(n => <option key={n} value={n} />)}</datalist>
         </div>
         <div className="field">
           <label>Variety</label>
           <input value={draft.variety || ''} onChange={e=>set('variety', e.target.value)} placeholder="e.g. Better Boy" />
+        </div>
+        <div className="field">
+          <label>Name</label>
+          <input value={draft.name} onChange={e=>set('name', e.target.value)} placeholder="Defaults to the group" />
         </div>
         <div className="field">
           <label>Color</label>
@@ -1153,73 +1527,204 @@ function PlantEditForm({ initial, onSave, onCancel, title }){
   );
 }
 
+function sowText(p){
+  if(p.sowAfterFrost <= -90) return 'Not spring-sown';
+  if(p.sowAfterFrost === 0) return 'At last frost';
+  const n = Math.abs(p.sowAfterFrost);
+  return `${n} ${n === 1 ? 'wk' : 'wks'} ${p.sowAfterFrost > 0 ? 'after' : 'before'} last frost`;
+}
+
+function PlantDetails({ p, inGarden, addToGarden, removeFromGarden, onEdit, onDelete }){
+  return (
+    <>
+      <div className="detail-grid">
+        <div className="meta-line"><b>Sun:</b> {p.sun}</div>
+        <div className="meta-line"><b>Water:</b> {p.water}</div>
+        <div className="meta-line"><b>Spacing:</b> {p.spacing || '—'}</div>
+        <div className="meta-line"><b>Maturity:</b> {p.maturity} days</div>
+        <div className="meta-line"><b>Frost hardy:</b> {p.tender ? 'No — tender' : 'Yes'}</div>
+        <div className="meta-line"><b>Start indoors:</b> {p.startIndoors ? `${p.startIndoors} ${p.startIndoors === 1 ? 'wk' : 'wks'} before last frost` : '—'}</div>
+        <div className="meta-line"><b>Sow outdoors:</b> {sowText(p)}</div>
+      </div>
+      <div className="card-actions">
+        {inGarden ? (
+          <button className="btn ghost sm" onClick={()=>removeFromGarden(p.id)}>✓ In My Garden — remove</button>
+        ) : (
+          <button className="btn clay sm" onClick={()=>addToGarden(p.id)}>+ Add to My Garden</button>
+        )}
+        <button className="btn ghost sm" onClick={onEdit}>Edit</button>
+        <button className="del-btn" onClick={onDelete}>Delete</button>
+      </div>
+    </>
+  );
+}
+
 function LibraryTab({ library, myGarden, addLibraryPlant, updateLibraryPlant, removeLibraryPlant, addToGarden, removeFromGarden }){
   const [query, setQuery] = useState('');
-  const [showAdd, setShowAdd] = useState(false);
+  const [adding, setAdding] = useState(null);      // null | { group } — where the new-plant form is open ('' = top)
   const [editingId, setEditingId] = useState(null);
+  const [openGroup, setOpenGroup] = useState(null);
+  const [openId, setOpenId] = useState(null);
+  const [letter, setLetter] = useState(null);
 
-  const filtered = library.filter(p => p.name.toLowerCase().includes(query.toLowerCase()));
+  // group name -> plants in that group, varieties A–Z
+  const groups = useMemo(() => {
+    const map = new Map();
+    library.forEach(p => {
+      const gName = groupOf(p);
+      if(!map.has(gName)) map.set(gName, []);
+      map.get(gName).push(p);
+    });
+    const byVariety = (a, b) =>
+      (a.variety || a.name || '').localeCompare(b.variety || b.name || '', undefined, { sensitivity:'base' });
+    return [...map.entries()]
+      .map(([name, plants]) => ({ name, plants: plants.sort(byVariety) }))
+      .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity:'base' }));
+  }, [library]);
+  const groupNames = useMemo(() => groups.map(gr => gr.name), [groups]);
+  const lettersInUse = useMemo(() => new Set(groups.map(gr => firstLetter(gr.name))), [groups]);
+
+  const q = query.trim().toLowerCase();
+  const visible = groups
+    .filter(gr => !letter || firstLetter(gr.name) === letter)
+    .map(gr => {
+      if(!q || gr.name.toLowerCase().includes(q)) return gr;
+      const plants = gr.plants.filter(p => (p.name || '').toLowerCase().includes(q) || (p.variety || '').toLowerCase().includes(q));
+      return plants.length ? { ...gr, plants } : null;
+    })
+    .filter(Boolean);
+  const plantCount = visible.reduce((n, gr) => n + gr.plants.length, 0);
+
+  const closeAll = () => { setOpenGroup(null); setOpenId(null); setEditingId(null); setAdding(null); };
+  const pickLetter = (l) => { setLetter(cur => cur === l ? null : l); closeAll(); };
+  const toggleGroup = (name) => { setOpenGroup(cur => cur === name ? null : name); setOpenId(null); setEditingId(null); setAdding(null); };
+
+  const newPlantFor = (gr) => ({
+    ...BLANK_PLANT,
+    group: gr ? gr.name : '',
+    name: gr ? gr.name : '',
+    color: gr ? gr.plants[0].color : randomColor(),
+  });
 
   return (
     <div>
       <h2 className="section-title">Plant Library</h2>
-      <p className="section-sub">Spacing, sun, and timing for what's growing. Edit any entry, add your own, or add one to My Garden to start planting it.</p>
+      <p className="section-sub">Pick a plant group to see its varieties, then pick a variety for its details. Edit any entry, add your own, or add one to My Garden to start planting it.</p>
 
       <div className="library-toolbar">
         <div className="field search-bar" style={{marginBottom:0}}>
-          <input placeholder="Search plants…" value={query} onChange={e=>setQuery(e.target.value)} />
+          <input placeholder="Search plants or varieties…" value={query} onChange={e=>{ setQuery(e.target.value); setOpenId(null); setEditingId(null); }} />
         </div>
-        <button className="btn clay" onClick={()=>{ setShowAdd(s=>!s); setEditingId(null); }}>
-          {showAdd ? 'Close' : '+ Add plant'}
+        <button className="btn clay" onClick={()=>{ setAdding(a => a && a.group === '' ? null : { group:'' }); setEditingId(null); }}>
+          {adding && adding.group === '' ? 'Close' : '+ Add plant'}
         </button>
       </div>
 
-      {showAdd && (
+      <div className="alpha-bar" role="group" aria-label="Filter plant groups by first letter">
+        <button type="button" className={'alpha-btn all' + (letter === null ? ' active' : '')} onClick={()=>{ setLetter(null); closeAll(); }}>All</button>
+        {ALPHABET.map(l => (
+          <button
+            key={l}
+            type="button"
+            className={'alpha-btn' + (letter === l ? ' active' : '')}
+            disabled={!lettersInUse.has(l)}
+            aria-pressed={letter === l}
+            onClick={()=>pickLetter(l)}
+          >{l}</button>
+        ))}
+      </div>
+      <div className="list-count">
+        {visible.length} group{visible.length === 1 ? '' : 's'} · {plantCount} variet{plantCount === 1 ? 'y' : 'ies'}{letter ? ` · starting with ${letter}` : ''}
+      </div>
+
+      {adding && adding.group === '' && (
         <PlantEditForm
           title="New plant"
-          initial={{ ...BLANK_PLANT, color: randomColor() }}
-          onSave={(draft)=>{ addLibraryPlant(draft); setShowAdd(false); }}
-          onCancel={()=>setShowAdd(false)}
+          groupNames={groupNames}
+          initial={newPlantFor(null)}
+          onSave={(draft)=>{ addLibraryPlant(draft); setAdding(null); setOpenGroup(draft.group); }}
+          onCancel={()=>setAdding(null)}
         />
       )}
 
-      <div className="plant-grid">
-        {filtered.map(p => {
-          const inGarden = myGarden.includes(p.id);
-          return editingId === p.id ? (
-            <div key={p.id} style={{gridColumn:'1 / -1'}}>
-              <PlantEditForm
-                title={`Edit ${p.name}`}
-                initial={p}
-                onSave={(draft)=>{ updateLibraryPlant(p.id, draft); setEditingId(null); }}
-                onCancel={()=>setEditingId(null)}
-              />
-            </div>
-          ) : (
-            <div key={p.id} className="plant-card" style={{borderLeftColor:p.color}}>
-              <h4>{p.name}</h4>
-              {p.variety && <div className="plant-variety">{p.variety}</div>}
-              <div className="meta-line"><b>Sun:</b> {p.sun}</div>
-              <div className="meta-line"><b>Water:</b> {p.water}</div>
-              <div className="meta-line"><b>Spacing:</b> {p.spacing || '—'}</div>
-              <div className="meta-line"><b>Maturity:</b> {p.maturity} days</div>
-              <div className="meta-line"><b>Frost hardy:</b> {p.tender ? 'No — tender' : 'Yes'}</div>
+      <div className="plant-list">
+        {visible.map(gr => {
+          const isOpen = openGroup === gr.name || !!q;
+          const inGardenCount = gr.plants.filter(p => myGarden.includes(p.id)).length;
+          return (
+            <div key={gr.name} className={'plant-row group-row' + (isOpen ? ' open' : '')}>
+              <button type="button" className="plant-row-btn" aria-expanded={isOpen} onClick={()=>toggleGroup(gr.name)}>
+                <span className="swatch" style={{background:gr.plants[0].color}}></span>
+                <span className="plant-row-name">{gr.name}</span>
+                <span className="group-count">{gr.plants.length} variet{gr.plants.length === 1 ? 'y' : 'ies'}</span>
+                {inGardenCount > 0 && <span className="garden-badge">✓ {inGardenCount} in My Garden</span>}
+                <span className="chevron">▶</span>
+              </button>
 
-              <div className="card-actions">
-                {inGarden ? (
-                  <button className="btn ghost sm" onClick={()=>removeFromGarden(p.id)}>✓ In My Garden — remove</button>
-                ) : (
-                  <button className="btn clay sm" onClick={()=>addToGarden(p.id)}>+ Add to My Garden</button>
-                )}
-              </div>
-              <div className="card-actions">
-                <button className="btn ghost sm" onClick={()=>{ setEditingId(p.id); setShowAdd(false); }}>Edit</button>
-                <button className="del-btn" onClick={()=>removeLibraryPlant(p.id)}>Delete</button>
-              </div>
+              {isOpen && (
+                <div className="variety-list">
+                  {gr.plants.map(p => {
+                    const inGarden = myGarden.includes(p.id);
+                    const vOpen = openId === p.id;
+                    const showName = p.name && p.name !== gr.name;
+                    return (
+                      <div key={p.id} className={'variety-row' + (vOpen ? ' open' : '')}>
+                        <button type="button" className="variety-btn" aria-expanded={vOpen}
+                          onClick={()=>{ setOpenId(vOpen ? null : p.id); setEditingId(null); setAdding(null); }}>
+                          <span className="swatch" style={{background:p.color}}></span>
+                          <span className="variety-name">
+                            {showName && <span className="variety-alt">{p.name} · </span>}
+                            {p.variety || p.name}
+                          </span>
+                          {inGarden && <span className="garden-badge">✓ My Garden</span>}
+                          <span className="chevron">▶</span>
+                        </button>
+                        {vOpen && (
+                          <div className="plant-detail">
+                            {editingId === p.id ? (
+                              <PlantEditForm
+                                title={`Edit ${p.variety || p.name}`}
+                                groupNames={groupNames}
+                                initial={p}
+                                onSave={(draft)=>{ updateLibraryPlant(p.id, draft); setEditingId(null); if(draft.group !== gr.name) setOpenGroup(draft.group); }}
+                                onCancel={()=>setEditingId(null)}
+                              />
+                            ) : (
+                              <PlantDetails
+                                p={p}
+                                inGarden={inGarden}
+                                addToGarden={addToGarden}
+                                removeFromGarden={removeFromGarden}
+                                onEdit={()=>{ setEditingId(p.id); setAdding(null); }}
+                                onDelete={()=>{ removeLibraryPlant(p.id); setOpenId(null); }}
+                              />
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                  <div className="add-variety">
+                    {adding && adding.group === gr.name ? (
+                      <PlantEditForm
+                        title={`New ${gr.name} variety`}
+                        groupNames={groupNames}
+                        initial={newPlantFor(gr)}
+                        onSave={(draft)=>{ addLibraryPlant(draft); setAdding(null); }}
+                        onCancel={()=>setAdding(null)}
+                      />
+                    ) : (
+                      <button type="button" className="add-variety-btn" onClick={()=>{ setAdding({ group: gr.name }); setOpenId(null); setEditingId(null); }}>
+                        + Add a {gr.name} variety
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}
-        {filtered.length === 0 && <div className="empty">No plants match "{query}".</div>}
+        {visible.length === 0 && <div className="empty" style={{padding:16}}>No plants match{letter ? ` letter ${letter}` : ''}{q ? ` "${query}"` : ''}.</div>}
       </div>
     </div>
   );
@@ -1397,7 +1902,7 @@ function TaskCard({ t, done, onToggle }){
       title={done ? 'Click to mark as not done' : 'Click to mark complete'}
     >
       <div className="t-check">{done ? '✓' : ''}</div>
-      <div className="t-plant">{t.plant.name}</div>
+      <div className="t-plant">{t.plant.name}{t.plant.variety && <span className="var-sub"> · {t.plant.variety}</span>}</div>
       <div className="t-type">{t.type}</div>
       <div className="t-range">{fmtRange(t.range)}</div>
     </div>
@@ -1557,7 +2062,7 @@ function CalendarTab({ frost, setFrost, library, setTab, completedTasks }){
                         const doneBadge = <span className="pill" style={{background:'var(--sage)'}}>✓ done</span>;
                         return (
                           <tr key={r.plant.id}>
-                            <td><b>{r.plant.name}</b></td>
+                            <td><b>{r.plant.name}</b>{r.plant.variety && <span className="var-sub"> · {r.plant.variety}</span>}</td>
                             <td>{r.startIndoorRange ? (startDone ? doneBadge : fmtRange(r.startIndoorRange)) : '—'}</td>
                             <td>{r.sowOutdoorRange ? (sowDone ? doneBadge : fmtRange(r.sowOutdoorRange)) : 'fall planting'}</td>
                             <td>{r.harvestRange ? (harvestDone ? doneBadge : fmtRange(r.harvestRange)) : '—'}</td>
@@ -1583,7 +2088,7 @@ function CalendarTab({ frost, setFrost, library, setTab, completedTasks }){
                     <div className="year-legend-group">
                       {library.map(p => (
                         <span className="year-legend-plant" key={p.id}>
-                          <span className="mini-swatch" style={{background:p.color}}></span>{p.name}
+                          <span className="mini-swatch" style={{background:p.color}}></span>{p.name}{p.variety && <span className="var-sub"> · {p.variety}</span>}
                         </span>
                       ))}
                     </div>
@@ -1875,7 +2380,7 @@ function GardenTab({ plannerName, beds, library, gardenPlantList, harvest, frost
           <div className="bed-plant-chips">
             {gardenPlantList.map(p => (
               <div className="mini-chip" key={p.id} style={{cursor:'pointer'}} title="Click to remove from My Garden" onClick={()=>removeFromGarden(p.id)}>
-                <span className="mini-swatch" style={{background:p.color}}></span>{p.name} ✕
+                <span className="mini-swatch" style={{background:p.color}}></span>{p.name}{p.variety && <span className="var-sub"> · {p.variety}</span>} ✕
               </div>
             ))}
           </div>
@@ -1931,7 +2436,7 @@ function GardenTab({ plannerName, beds, library, gardenPlantList, harvest, frost
                 <div className="bed-plant-chips">
                   {plants.map(({plant, count}) => (
                     <div className="mini-chip" key={plant.id}>
-                      <span className="mini-swatch" style={{background:plant.color}}></span>{plant.name} ×{count}
+                      <span className="mini-swatch" style={{background:plant.color}}></span>{plant.name}{plant.variety && <span className="var-sub"> · {plant.variety}</span>} ×{count}
                     </div>
                   ))}
                 </div>

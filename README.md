@@ -25,7 +25,7 @@ network sees the same garden, and it survives container rebuilds.
 ```
 zimaos-furrow/
   app/
-    furrow-garden-planner.html   the app itself (unchanged)
+    furrow-garden-planner.html   the app itself
     server.js                    web server + storage bridge
   Apps/
     Furrow/
